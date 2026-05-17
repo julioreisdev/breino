@@ -354,49 +354,6 @@
   .athlete.julio .athlete-focus b { color: var(--julio); }
   .athlete.sara .athlete-focus b { color: var(--sara); }
 
-  /* TOGGLE — mostrar concluídos */
-  .toggle-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .toggle-show {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: var(--ink-dim);
-    text-transform: uppercase;
-    user-select: none;
-    padding: 8px 14px;
-    border: 1px solid var(--line-strong);
-    transition: all 0.2s;
-  }
-  .toggle-show:hover { border-color: var(--accent); color: var(--accent); }
-  .toggle-show input { display: none; }
-  .toggle-show .mini-check {
-    width: 14px; height: 14px;
-    border: 1.5px solid currentColor;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .toggle-show input:checked ~ .mini-check::after {
-    content: "✓";
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-  }
-
   /* SECTION TITLE */
   .section-title {
     display: flex;
@@ -420,45 +377,193 @@
     text-transform: uppercase;
   }
 
-  /* DAYS GRID */
+  /* TABS — Não concluídos / Concluídos */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 18px;
+    border: 1px solid var(--line-strong);
+    padding: 4px;
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    color: var(--ink-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 700;
+  }
+  .tab .tab-count {
+    font-size: 10px;
+    background: rgba(0,0,0,0.25);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+  .tab.active .tab-count { background: rgba(13,12,10,0.25); }
+
+  /* DAYS — accordion list */
   .days {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
   .day {
     background: var(--bg-card);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--line);
-    padding: 0;
     position: relative;
-    display: flex;
-    flex-direction: column;
+    transition: border-color 0.3s, box-shadow 0.3s;
     overflow: hidden;
-    transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .day:hover {
-    border-color: var(--line-strong);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
-  }
+  .day:hover { border-color: var(--line-strong); }
   .day.today {
     border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent), 0 0 30px rgba(255,90,31,0.15);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 24px rgba(255,90,31,0.12);
   }
-  .day.today::before {
-    content: "HOJE";
-    position: absolute;
-    top: 0; right: 0;
+  .day.open { border-color: var(--line-strong); }
+  .day.today.open { border-color: var(--accent); }
+
+  /* HEADER clicável */
+  .day-summary {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+  }
+  .day-summary:hover { background: rgba(255,255,255,0.02); }
+
+  .summary-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--ink-dim);
+    background: rgba(0,0,0,0.3);
+    padding: 4px 8px;
+    border: 1px solid var(--line);
+    min-width: 52px;
+    text-align: center;
+  }
+  .day.today .summary-num {
     background: var(--accent);
     color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  .summary-mid { min-width: 0; }
+  .summary-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .summary-date {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
+    font-size: 10px;
+    color: var(--ink-dim);
+    letter-spacing: 0.12em;
+    margin-top: 2px;
+  }
+  .day.today .summary-date::after {
+    content: "  ·  HOJE";
+    color: var(--accent);
     font-weight: 700;
-    letter-spacing: 0.2em;
-    padding: 5px 10px;
-    z-index: 5;
+  }
+
+  /* avatares status no header (acendem quando marcado) */
+  .summary-avatars {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-av {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center 20%;
+    flex-shrink: 0;
+    filter: grayscale(1) brightness(0.5);
+    box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 2.5px var(--ink-dim);
+    transition: all 0.3s;
+    position: relative;
+  }
+  .status-av.julio { background-image: url('julio.png'); }
+  .status-av.sara  { background-image: url('sara.png'); }
+  .status-av.checked.julio {
+    filter: none;
+    box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 2.5px var(--julio), 0 0 14px rgba(255,90,31,0.5);
+  }
+  .status-av.checked.sara {
+    filter: none;
+    box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 2.5px var(--sara), 0 0 14px rgba(212,255,58,0.4);
+  }
+  .status-av.checked::after {
+    content: "✓";
+    position: absolute;
+    bottom: -3px; right: -3px;
+    width: 14px; height: 14px;
+    background: var(--bg);
+    border-radius: 50%;
+    color: currentColor;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .status-av.checked.julio::after { color: var(--julio); }
+  .status-av.checked.sara::after  { color: var(--sara); }
+
+  /* chevron */
+  .summary-chevron {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-dim);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .summary-chevron svg { width: 14px; height: 14px; }
+  .day.open .summary-chevron { transform: rotate(180deg); color: var(--accent); }
+
+  /* CONTEÚDO expansível */
+  .day-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .day.open .day-content { max-height: 2000px; }
+  .day-content-inner {
+    padding: 4px 16px 16px;
+    border-top: 1px solid var(--line);
   }
 
   /* AVATAR REDONDO INLINE — junto de cada person-tag */
@@ -488,48 +593,6 @@
   }
   .avatar-stack .avatar { width: 24px; height: 24px; box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 2.5px var(--both); }
   .avatar-stack .avatar.sara { margin-left: -10px; }
-
-  .day-body {
-    padding: 18px 16px 14px;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
-
-  .day-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 14px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--line);
-  }
-  .day-name {
-    font-family: 'Fraunces', serif;
-    font-weight: 800;
-    font-size: 22px;
-    letter-spacing: -0.02em;
-  }
-  .day-date {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--ink-dim);
-    letter-spacing: 0.1em;
-  }
-  .day-num-badge {
-    position: absolute;
-    top: 10px; right: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    background: rgba(13,12,10,0.85);
-    color: var(--ink);
-    padding: 3px 7px;
-    z-index: 3;
-    border: 1px solid var(--line);
-  }
-  .day.today .day-num-badge { right: 56px; }
 
   .person-block { margin-bottom: 12px; }
   .person-tag {
@@ -564,8 +627,8 @@
 
   /* DOIS CHECKS — Julio + Sara */
   .day-checks {
-    margin-top: auto;
     padding-top: 14px;
+    margin-top: 14px;
     border-top: 1px solid var(--line);
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -582,7 +645,7 @@
     text-transform: uppercase;
     color: var(--ink-dim);
     user-select: none;
-    padding: 8px 10px;
+    padding: 10px 12px;
     border: 1px solid var(--line);
     transition: all 0.2s;
     background: rgba(0,0,0,0.2);
@@ -620,16 +683,11 @@
   .check-pill.julio input:checked ~ .check-label { color: var(--julio); }
   .check-pill.sara input:checked ~ .check-label { color: var(--sara); }
 
-  /* AMBOS marcados — dia some/some */
-  .day.done {
-    display: none;
-  }
-  .show-done .day.done {
-    display: flex;
-    opacity: 0.4;
-    filter: grayscale(0.7);
-  }
-  .show-done .day.done .day-name {
+  /* Visibilidade controlada por tab ativa (.tab-pending/.tab-done) */
+  .day { display: none; }
+  body.tab-pending .day:not(.done) { display: block; }
+  body.tab-done .day.done { display: block; opacity: 0.7; }
+  body.tab-done .day.done .summary-name {
     text-decoration: line-through;
     text-decoration-thickness: 2px;
     text-decoration-color: var(--accent-2);
@@ -774,9 +832,6 @@
   .toast.error { border-color: var(--accent); color: var(--accent); }
 
   /* RESPONSIVE */
-  @media (max-width: 1100px) {
-    .days { grid-template-columns: repeat(2, 1fr); }
-  }
   @media (max-width: 760px) {
     body::before { background-attachment: scroll; opacity: 0.55; }
     .wrap { padding: 20px 14px 60px; }
@@ -821,16 +876,20 @@
     .athlete-stats { gap: 14px; font-size: 10.5px; }
     .section-title { margin-bottom: 18px; }
     .section-title h2 { font-size: 26px; }
-    .days {
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-    .day-body { padding: 16px 14px 14px; }
-    .day-name { font-size: 24px; }
+    .days { gap: 8px; }
+    .day-summary { padding: 12px 14px; gap: 10px; grid-template-columns: auto 1fr auto auto; }
+    .summary-num { font-size: 9.5px; min-width: 46px; padding: 3px 6px; letter-spacing: 0.1em; }
+    .summary-name { font-size: 18px; }
+    .summary-date { font-size: 9.5px; }
+    .status-av { width: 26px; height: 26px; }
+    .summary-avatars { gap: 4px; }
+    .day-content-inner { padding: 4px 14px 14px; }
     .day-checks { gap: 6px; }
     .check-pill { padding: 9px 8px; font-size: 9.5px; gap: 7px; letter-spacing: 0.1em; }
     .check-box { width: 17px; height: 17px; }
     .person-block li { font-size: 12px; line-height: 1.5; }
+    .tabs { padding: 3px; }
+    .tab { padding: 9px 10px; font-size: 10px; letter-spacing: 0.15em; gap: 6px; }
     footer { font-size: 9px; }
   }
   @media (max-width: 380px) {
@@ -840,6 +899,8 @@
     .athlete-photo { width: 96px; min-height: 150px; }
     .athlete-name { font-size: 26px; }
     .check-pill { padding: 8px 6px; font-size: 9px; }
+    .status-av { width: 24px; height: 24px; }
+    .summary-name { font-size: 16px; }
   }
 </style>
 </head>
@@ -941,15 +1002,15 @@
       <h2>O Plano</h2>
     </div>
 
-    <div class="toggle-row">
-      <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; color: var(--ink-dim); text-transform: uppercase;">
-        Os dias somem quando <b style="color:var(--julio)">O B</b> e <b style="color:var(--sara)">A B</b> marcam.
-      </div>
-      <label class="toggle-show">
-        <input type="checkbox" id="show-done-toggle">
-        <span class="mini-check"></span>
-        <span>Mostrar concluídos</span>
-      </label>
+    <div class="tabs">
+      <button class="tab active" data-tab="pending">
+        <span>Não concluídos</span>
+        <span class="tab-count" id="count-pending">0</span>
+      </button>
+      <button class="tab" data-tab="done">
+        <span>Concluídos</span>
+        <span class="tab-count" id="count-done">0</span>
+      </button>
     </div>
 
     <div class="days" id="days-grid"></div>
@@ -1115,7 +1176,6 @@ const frases = [
    ============================================================ */
 const STORAGE_KEY = "breino_state_v2";
 let state = {};
-let showDone = false;
 let syncTimer = null;
 let pullTimer = null;
 
@@ -1362,7 +1422,7 @@ function render() {
   today.setHours(0,0,0,0);
 
   let doneCount = 0;
-  let visibleCount = 0;
+  let pendingCount = 0;
 
   for (let i = 0; i < totalDays; i++) {
     const d = addDays(startDate, i);
@@ -1370,68 +1430,92 @@ function render() {
     const entry = state[key] || { julio: false, sara: false };
     const fullyDone = entry.julio && entry.sara;
     if (fullyDone) doneCount++;
-    else visibleCount++;
+    else pendingCount++;
 
     const plan = weeklyPlan[d.getDay()];
     const isToday = sameDay(d, today);
 
     const card = document.createElement("div");
-    card.className = "day" + (isToday ? " today" : "") + (fullyDone ? " done" : "");
+    card.className = "day" + (isToday ? " today" : "") + (fullyDone ? " done" : "") + (isToday ? " open" : "");
     card.dataset.key = key;
-    card.style.animationDelay = (0.7 + i * 0.012) + "s";
+    card.style.animationDelay = (0.7 + i * 0.010) + "s";
     card.classList.add("reveal");
 
     card.innerHTML = `
-      <div class="day-num-badge">DIA ${i+1}</div>
-      <div class="day-body">
-        <div class="day-header">
-          <div class="day-name">${diasSemana[d.getDay()]}</div>
-          <div class="day-date">${fmtDate(d)}</div>
+      <div class="day-summary" role="button" aria-expanded="${isToday ? "true" : "false"}">
+        <div class="summary-num">DIA ${i+1}</div>
+        <div class="summary-mid">
+          <div class="summary-name">${diasSemana[d.getDay()]}</div>
+          <div class="summary-date">${fmtDate(d)}</div>
         </div>
-        <div class="person-block">
-          <div class="person-head">
-            <span class="avatar julio"></span>
-            <span class="person-tag julio">O B</span>
-          </div>
-          <ul>${plan.julio.map(x => `<li>${x}</li>`).join("")}</ul>
+        <div class="summary-avatars">
+          <span class="status-av julio ${entry.julio ? "checked" : ""}"></span>
+          <span class="status-av sara ${entry.sara ? "checked" : ""}"></span>
         </div>
-        <div class="person-block">
-          <div class="person-head">
-            <span class="avatar sara"></span>
-            <span class="person-tag sara">A B</span>
-          </div>
-          <ul>${plan.sara.map(x => `<li>${x}</li>`).join("")}</ul>
+        <div class="summary-chevron">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="person-block">
-          <div class="person-head">
-            <span class="avatar-stack">
+      </div>
+      <div class="day-content">
+        <div class="day-content-inner">
+          <div class="person-block">
+            <div class="person-head">
               <span class="avatar julio"></span>
-              <span class="avatar sara"></span>
-            </span>
-            <span class="person-tag both">JUNTOS</span>
+              <span class="person-tag julio">O B</span>
+            </div>
+            <ul>${plan.julio.map(x => `<li>${x}</li>`).join("")}</ul>
           </div>
-          <ul><li>${plan.both}</li></ul>
-        </div>
-        <div class="day-checks">
-          <label class="check-pill julio">
-            <input type="checkbox" data-who="julio" data-key="${key}" ${entry.julio ? "checked" : ""}>
-            <span class="check-box"></span>
-            <span class="check-label">O B</span>
-          </label>
-          <label class="check-pill sara">
-            <input type="checkbox" data-who="sara" data-key="${key}" ${entry.sara ? "checked" : ""}>
-            <span class="check-box"></span>
-            <span class="check-label">A B</span>
-          </label>
+          <div class="person-block">
+            <div class="person-head">
+              <span class="avatar sara"></span>
+              <span class="person-tag sara">A B</span>
+            </div>
+            <ul>${plan.sara.map(x => `<li>${x}</li>`).join("")}</ul>
+          </div>
+          <div class="person-block">
+            <div class="person-head">
+              <span class="avatar-stack">
+                <span class="avatar julio"></span>
+                <span class="avatar sara"></span>
+              </span>
+              <span class="person-tag both">JUNTOS</span>
+            </div>
+            <ul><li>${plan.both}</li></ul>
+          </div>
+          <div class="day-checks">
+            <label class="check-pill julio">
+              <input type="checkbox" data-who="julio" data-key="${key}" ${entry.julio ? "checked" : ""}>
+              <span class="check-box"></span>
+              <span class="check-label">O B</span>
+            </label>
+            <label class="check-pill sara">
+              <input type="checkbox" data-who="sara" data-key="${key}" ${entry.sara ? "checked" : ""}>
+              <span class="check-box"></span>
+              <span class="check-label">A B</span>
+            </label>
+          </div>
         </div>
       </div>
     `;
     grid.appendChild(card);
   }
 
-  // wire checkboxes
+  // accordion: toggle ao clicar no summary (mas não nos checks)
+  grid.querySelectorAll(".day-summary").forEach(sum => {
+    sum.addEventListener("click", (e) => {
+      const card = sum.closest(".day");
+      card.classList.toggle("open");
+      sum.setAttribute("aria-expanded", card.classList.contains("open") ? "true" : "false");
+    });
+  });
+
+  // checkboxes — stopPropagation pra não disparar accordion
+  grid.querySelectorAll('.day-checks').forEach(box => {
+    box.addEventListener("click", (e) => e.stopPropagation());
+  });
   grid.querySelectorAll('input[type="checkbox"]').forEach(inp => {
     inp.addEventListener("change", (e) => {
+      e.stopPropagation();
       const who = e.target.dataset.who;
       const k = e.target.dataset.key;
       if (!state[k]) state[k] = { julio: false, sara: false };
@@ -1441,45 +1525,70 @@ function render() {
       const card = e.target.closest(".day");
       const fullyDone = state[k] && state[k].julio && state[k].sara;
 
-      if (fullyDone && !showDone) {
-        card.classList.add("just-checked");
-        setTimeout(() => {
-          card.classList.add("fade-out");
-          setTimeout(() => { saveLocal(); schedulePush(); render(); }, 480);
-        }, 350);
-      } else {
-        card.classList.add("just-checked");
-        setTimeout(() => card.classList.remove("just-checked"), 500);
-        saveLocal();
-        schedulePush();
-        // atualiza só métricas
-        updateMetrics();
-        // se desmarcou e card está done class, re-render
-        if (!fullyDone && card.classList.contains("done")) render();
-      }
+      // atualiza avatar de status no header
+      const av = card.querySelector(`.status-av.${who}`);
+      if (av) av.classList.toggle("checked", e.target.checked);
+
+      card.classList.add("just-checked");
+      setTimeout(() => card.classList.remove("just-checked"), 500);
+
+      saveLocal();
+      schedulePush();
+
+      // atualiza classe done e contadores
+      card.classList.toggle("done", !!fullyDone);
+      updateMetrics();
     });
   });
 
-  // empty state se 0 visíveis e não está mostrando concluídos
-  if (visibleCount === 0 && !showDone && doneCount > 0) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.innerHTML = `
-      <h3>Tudo feito.</h3>
-      <p>O B + A B + Bzinho · campeões</p>
-    `;
-    grid.appendChild(empty);
-  }
+  // empty states pra cada tab
+  const emptyPending = document.createElement("div");
+  emptyPending.className = "empty-state empty-pending";
+  emptyPending.id = "empty-pending";
+  emptyPending.innerHTML = `<h3>Tudo feito.</h3><p>O B + A B + Bzinho · campeões</p>`;
+  emptyPending.style.display = pendingCount === 0 ? "block" : "none";
+  // só visível na tab pending
+  emptyPending.setAttribute("data-tab-only", "pending");
+  grid.appendChild(emptyPending);
 
+  const emptyDone = document.createElement("div");
+  emptyDone.className = "empty-state empty-done";
+  emptyDone.id = "empty-done";
+  emptyDone.innerHTML = `<h3>Nada concluído ainda.</h3><p>O primeiro check sai daqui a pouco</p>`;
+  emptyDone.style.display = doneCount === 0 ? "block" : "none";
+  emptyDone.setAttribute("data-tab-only", "done");
+  grid.appendChild(emptyDone);
+
+  applyTabVisibility();
   updateMetrics();
   updateFrase();
 }
 
+function applyTabVisibility() {
+  const tab = document.body.classList.contains("tab-done") ? "done" : "pending";
+  document.querySelectorAll("[data-tab-only]").forEach(el => {
+    el.style.display = (el.getAttribute("data-tab-only") === tab) ? "block" : "none";
+  });
+  // re-checar empty states com contagem atual
+  let done = 0, pending = 0;
+  for (let i = 0; i < totalDays; i++) {
+    const d = addDays(startDate, i);
+    if (isDayFullyDone(dateKey(d))) done++; else pending++;
+  }
+  const ep = document.getElementById("empty-pending");
+  const ed = document.getElementById("empty-done");
+  if (ep) ep.style.display = (tab === "pending" && pending === 0) ? "block" : "none";
+  if (ed) ed.style.display = (tab === "done" && done === 0) ? "block" : "none";
+}
+
+
 function updateMetrics() {
   let doneCount = 0;
+  let pendingCount = 0;
   for (let i = 0; i < totalDays; i++) {
     const d = addDays(startDate, i);
     if (isDayFullyDone(dateKey(d))) doneCount++;
+    else pendingCount++;
   }
   const endDate = addDays(startDate, totalDays);
   const today2 = new Date(); today2.setHours(0,0,0,0);
@@ -1496,8 +1605,15 @@ function updateMetrics() {
   document.getElementById("done-pct").textContent = pct + "%";
   setTimeout(() => { document.getElementById("progress-bar").style.width = pct + "%"; }, 100);
 
+  const cp = document.getElementById("count-pending");
+  const cd = document.getElementById("count-done");
+  if (cp) cp.textContent = pendingCount;
+  if (cd) cd.textContent = doneCount;
+
   document.getElementById("meta-period").textContent =
     fmtDate(startDate).toUpperCase() + " · " + fmtDate(addDays(startDate, totalDays - 1)).toUpperCase();
+
+  applyTabVisibility();
 }
 
 function updateFrase() {
@@ -1517,12 +1633,17 @@ function updateFrase() {
 }
 
 /* ============================================================
-   TOGGLE + RESET
+   TABS + RESET
    ============================================================ */
-document.getElementById("show-done-toggle").addEventListener("change", (e) => {
-  showDone = e.target.checked;
-  document.body.classList.toggle("show-done", showDone);
-  render();
+document.body.classList.add("tab-pending");
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.tab;
+    document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
+    document.body.classList.toggle("tab-pending", target === "pending");
+    document.body.classList.toggle("tab-done", target === "done");
+    applyTabVisibility();
+  });
 });
 
 document.getElementById("reset-btn").addEventListener("click", () => {

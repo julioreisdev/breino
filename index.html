@@ -1175,7 +1175,7 @@ const SB_HEADERS = {
 async function pullFromCloud() {
   setSyncStatus("syncing", "Sincronizando…");
   try {
-    const resp = await fetch(`${SB_REST}?id=eq.singleton&select=data&t=${Date.now()}`, {
+    const resp = await fetch(`${SB_REST}?id=eq.singleton&select=data`, {
       headers: SB_HEADERS,
       cache: "no-store"
     });

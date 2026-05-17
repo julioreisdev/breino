@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0d0c0a">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>30 DIAS · O B & A B</title>
@@ -967,16 +968,12 @@
 
 <script>
 /* ============================================================
-   CONFIG GITHUB SYNC
-   Sincroniza state.json no repo julioreisdev/breino
+   CONFIG SUPABASE
    ============================================================ */
-const GH_OWNER = "julioreisdev";
-const GH_REPO  = "breino";
-const GH_PATH  = "state.json";
-const GH_BRANCH = "main";
-const GH_TOKEN = "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";
-
-const GH_API = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
+const SUPABASE_URL = "https://ilsjnkyhupwrvahbyzxf.supabase.co";
+const SUPABASE_KEY = "sb_publishable_hnnl-m8k9T3p2tQXwgBIqg_vWNX2eke";
+const SB_REST = `${SUPABASE_URL}/rest/v1/breino_state`;
+const SB_REALTIME = `${SUPABASE_URL.replace("https://","wss://")}/realtime/v1/websocket`;
 
 let LAST_ERROR = "";
 
@@ -1117,9 +1114,7 @@ const frases = [
    STATE — { "YYYY-MM-DD": { julio: bool, sara: bool } }
    ============================================================ */
 const STORAGE_KEY = "breino_state_v2";
-const SHA_KEY = "breino_sha_v2";
 let state = {};
-let currentSha = null;
 let showDone = false;
 let syncTimer = null;
 let pullTimer = null;
@@ -1129,11 +1124,9 @@ function loadLocal() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) state = JSON.parse(raw);
   } catch(e) { state = {}; }
-  currentSha = localStorage.getItem(SHA_KEY) || null;
 }
 function saveLocal() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  if (currentSha) localStorage.setItem(SHA_KEY, currentSha);
 }
 
 /* ============================================================
@@ -1165,54 +1158,54 @@ function updateDebug() {
   }
 }
 
-// base64 unicode-safe
-function b64Encode(str) {
-  return btoa(unescape(encodeURIComponent(str)));
-}
+// base64 unicode-safe (mantido por se precisar futuramente)
+function b64Encode(str) { return btoa(unescape(encodeURIComponent(str))); }
 function b64Decode(b64) {
-  try {
-    return decodeURIComponent(escape(atob(b64.replace(/\s/g,""))));
-  } catch(e) { return "{}"; }
+  try { return decodeURIComponent(escape(atob(b64.replace(/\s/g,"")))); }
+  catch(e) { return "{}"; }
 }
 
-async function pullFromGitHub() {
+const SB_HEADERS = {
+  "apikey": SUPABASE_KEY,
+  "Authorization": "Bearer " + SUPABASE_KEY,
+  "Content-Type": "application/json",
+  "Prefer": "return=representation"
+};
+
+async function pullFromCloud() {
   setSyncStatus("syncing", "Sincronizando…");
   try {
-    const resp = await fetch(`${GH_API}?ref=${GH_BRANCH}&t=${Date.now()}`, {
-      headers: {
-        "Authorization": "Bearer " + GH_TOKEN,
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-      },
+    const resp = await fetch(`${SB_REST}?id=eq.singleton&select=data&t=${Date.now()}`, {
+      headers: SB_HEADERS,
       cache: "no-store"
     });
-    if (resp.status === 404) {
-      // arquivo ainda não existe — criar com state local
-      setSyncStatus("", "Pronto (novo)");
-      await pushToGitHub(true);
-      return;
-    }
     if (!resp.ok) {
       const t = await resp.text();
       LAST_ERROR = `PULL ${resp.status}: ${t.slice(0,250)}`;
       updateDebug();
       throw new Error(LAST_ERROR);
     }
-    const data = await resp.json();
-    currentSha = data.sha;
-    const content = b64Decode(data.content);
-    let remote = {};
-    try { remote = JSON.parse(content); } catch(e) { remote = {}; }
+    const rows = await resp.json();
+    const remote = (rows[0] && rows[0].data) || {};
 
     const merged = mergeStates(state, remote);
-    const changed = JSON.stringify(merged) !== JSON.stringify(state);
+    const remoteChanged = JSON.stringify(merged) !== JSON.stringify(remote);
+    const localChanged  = JSON.stringify(merged) !== JSON.stringify(state);
+
     state = merged;
     saveLocal();
-    render();
+
+    if (localChanged) {
+      render();
+      showToast("Atualizado", "success");
+    }
+    // se merge gerou diff em relação ao remoto (local tinha mais), empurra
+    if (remoteChanged) {
+      schedulePush();
+    }
     setSyncStatus("", "Sincronizado");
     LAST_ERROR = "";
     updateDebug();
-    if (changed) showToast("Atualizado do GitHub", "success");
   } catch(err) {
     console.error("pull error", err);
     if (!LAST_ERROR) LAST_ERROR = "PULL: " + (err.message || err);
@@ -1236,42 +1229,19 @@ function mergeStates(a, b) {
   return out;
 }
 
-async function pushToGitHub(isCreate) {
+async function pushToCloud() {
   setSyncStatus("syncing", "Salvando…");
   try {
-    const body = {
-      message: `update ${new Date().toISOString()}`,
-      content: b64Encode(JSON.stringify(state, null, 2)),
-      branch: GH_BRANCH
-    };
-    if (currentSha && !isCreate) body.sha = currentSha;
-
-    const resp = await fetch(GH_API, {
-      method: "PUT",
-      headers: {
-        "Authorization": "Bearer " + GH_TOKEN,
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(body)
+    const resp = await fetch(`${SB_REST}?id=eq.singleton`, {
+      method: "PATCH",
+      headers: SB_HEADERS,
+      body: JSON.stringify({ data: state, updated_at: new Date().toISOString() })
     });
-
-    if (resp.status === 409 || resp.status === 422) {
-      // conflito de SHA — fazer pull e tentar de novo
-      await pullFromGitHub();
-      return pushToGitHub(false);
-    }
     if (!resp.ok) {
       const t = await resp.text();
       LAST_ERROR = `PUSH ${resp.status}: ${t.slice(0,250)}`;
       updateDebug();
       throw new Error(LAST_ERROR);
-    }
-    const data = await resp.json();
-    if (data.content && data.content.sha) {
-      currentSha = data.content.sha;
-      saveLocal();
     }
     setSyncStatus("", "Sincronizado");
     LAST_ERROR = "";
@@ -1287,7 +1257,74 @@ async function pushToGitHub(isCreate) {
 
 function schedulePush() {
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => pushToGitHub(false), 700);
+  syncTimer = setTimeout(() => pushToCloud(), 500);
+}
+
+/* ============================================================
+   REALTIME — WebSocket para sincronia instantânea
+   ============================================================ */
+let rtSocket = null;
+let rtHeartbeat = null;
+let rtRef = 1;
+let rtReconnectDelay = 1000;
+
+function startRealtime() {
+  try {
+    const url = `${SB_REALTIME}?apikey=${SUPABASE_KEY}&vsn=1.0.0`;
+    rtSocket = new WebSocket(url);
+
+    rtSocket.onopen = () => {
+      rtReconnectDelay = 1000;
+      // join channel
+      rtSocket.send(JSON.stringify({
+        topic: "realtime:public:breino_state",
+        event: "phx_join",
+        payload: {
+          config: {
+            postgres_changes: [{ event: "UPDATE", schema: "public", table: "breino_state" }]
+          }
+        },
+        ref: String(rtRef++)
+      }));
+      // heartbeat a cada 30s
+      clearInterval(rtHeartbeat);
+      rtHeartbeat = setInterval(() => {
+        if (rtSocket && rtSocket.readyState === 1) {
+          rtSocket.send(JSON.stringify({ topic: "phoenix", event: "heartbeat", payload: {}, ref: String(rtRef++) }));
+        }
+      }, 30000);
+    };
+
+    rtSocket.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+        if (msg.event === "postgres_changes" && msg.payload && msg.payload.data) {
+          const newRecord = msg.payload.data.record;
+          if (newRecord && newRecord.data) {
+            const remote = newRecord.data;
+            const merged = mergeStates(state, remote);
+            const changed = JSON.stringify(merged) !== JSON.stringify(state);
+            if (changed) {
+              state = merged;
+              saveLocal();
+              render();
+              showToast("Atualizado em tempo real", "success");
+            }
+          }
+        }
+      } catch(e) { /* ignora */ }
+    };
+
+    rtSocket.onerror = () => { /* será tratado no onclose */ };
+    rtSocket.onclose = () => {
+      clearInterval(rtHeartbeat);
+      // reconnect com backoff
+      setTimeout(startRealtime, rtReconnectDelay);
+      rtReconnectDelay = Math.min(rtReconnectDelay * 2, 30000);
+    };
+  } catch(e) {
+    console.error("realtime error", e);
+  }
 }
 
 /* ============================================================
@@ -1489,11 +1526,11 @@ document.getElementById("show-done-toggle").addEventListener("change", (e) => {
 });
 
 document.getElementById("reset-btn").addEventListener("click", () => {
-  if (confirm("Resetar todos os checks? Isso vai apagar o progresso no GitHub também.")) {
+  if (confirm("Resetar todos os checks? Isso vai apagar o progresso de vocês dois.")) {
     state = {};
     saveLocal();
     render();
-    pushToGitHub(false);
+    pushToCloud();
     showToast("Progresso resetado", "success");
   }
 });
@@ -1503,17 +1540,18 @@ document.getElementById("reset-btn").addEventListener("click", () => {
    ============================================================ */
 loadLocal();
 render();
-pullFromGitHub();
+pullFromCloud();
+startRealtime();
 
-// re-pull a cada 30s para pegar marcações do outro celular
-pullTimer = setInterval(pullFromGitHub, 30000);
+// fallback polling a cada 30s (caso realtime caia)
+pullTimer = setInterval(pullFromCloud, 30000);
 
 // re-pull quando a aba volta a ficar visível
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) pullFromGitHub();
+  if (!document.hidden) pullFromCloud();
 });
 
-window.addEventListener("online", pullFromGitHub);
+window.addEventListener("online", pullFromCloud);
 </script>
 
 </body>
